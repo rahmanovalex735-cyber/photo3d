@@ -5,3 +5,1583 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Photo3D — 3D модели по фото</title>
   <meta name="description" content="Превращаем ваши фотографии в детализированные 3D модели с ручной раскраской. Уникальные подарки и коллекционные фигурки." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0A0A0A;
+      --white: #FFFFFF;
+      --accent: #6C63FF;
+      --highlight: #FF6584;
+      --bg2: #111118;
+      --glass: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.08);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Space Grotesk', sans-serif;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      background: rgba(10,10,10,0.7);
+      border-bottom: 1px solid var(--glass-border);
+      transition: background 0.3s;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--highlight));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      background: var(--accent);
+      color: var(--white) !important;
+      padding: 0.5rem 1.2rem;
+      border-radius: 100px;
+      transition: opacity 0.2s !important;
+    }
+
+    .nav-cta:hover { opacity: 0.85; }
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--white);
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+    /* ─── HERO ─── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      padding: 8rem 1.5rem 4rem;
+    }
+
+    #hero-canvas-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 2rem;
+      backdrop-filter: blur(10px);
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -2px;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--highlight) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: rgba(255,255,255,0.6);
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8B7FFF);
+      color: var(--white);
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 0 30px rgba(108,99,255,0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 50px rgba(108,99,255,0.6);
+    }
+
+    .btn-secondary {
+      background: var(--glass);
+      color: var(--white);
+      border: 1px solid var(--glass-border);
+      padding: 0.9rem 2rem;
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      backdrop-filter: blur(10px);
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .hero-stats {
+      margin-top: 4rem;
+      display: flex;
+      gap: 3rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: fadeUp 0.6s 0.4s ease both;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--highlight));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      margin-top: 0.2rem;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── SECTIONS ─── */
+    section {
+      padding: 6rem 1.5rem;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+    }
+
+    .section-sub {
+      color: rgba(255,255,255,0.55);
+      font-size: 1.05rem;
+      max-width: 540px;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    #how {
+      background: var(--bg2);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+      margin-top: 3.5rem;
+    }
+
+    .step {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+
+    .step:hover {
+      transform: translateY(-4px);
+      border-color: rgba(108,99,255,0.3);
+    }
+
+    .step::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--highlight));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .step:hover::before { opacity: 1; }
+
+    .step-num {
+      font-size: 3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent), var(--highlight));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+
+    .step-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .step h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .step p {
+      color: rgba(255,255,255,0.55);
+      font-size: 0.9rem;
+    }
+
+    /* ─── 3D EXAMPLES ─── */
+    #examples {
+      background: var(--bg);
+    }
+
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-top: 3.5rem;
+    }
+
+    .model-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .model-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 20px 60px rgba(108,99,255,0.2);
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      background: radial-gradient(ellipse at center, #1a1a2e 0%, #0A0A0A 70%);
+    }
+
+    .canvas-wrap canvas {
+      width: 100% !important;
+      height: 100% !important;
+      display: block;
+    }
+
+    .canvas-hint {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.3);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .model-info {
+      padding: 1.5rem;
+    }
+
+    .model-tag {
+      display: inline-block;
+      background: rgba(108,99,255,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 100px;
+      padding: 0.2rem 0.7rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+
+    .model-info h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    .model-info p {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+    }
+
+    /* ─── BENEFITS ─── */
+    #benefits {
+      background: var(--bg2);
+    }
+
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+    }
+
+    .benefit-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 1.8rem;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+
+    .benefit-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,101,132,0.3);
+    }
+
+    .benefit-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, rgba(108,99,255,0.2), rgba(255,101,132,0.2));
+      border: 1px solid rgba(108,99,255,0.3);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    .benefit-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    .benefit-card p {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+    }
+
+    /* ─── PRICING ─── */
+    #pricing {
+      background: var(--bg);
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+      align-items: start;
+    }
+
+    .price-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 2rem;
+      position: relative;
+      transition: transform 0.3s;
+    }
+
+    .price-card:hover { transform: translateY(-4px); }
+
+    .price-card.featured {
+      background: linear-gradient(135deg, rgba(108,99,255,0.12), rgba(255,101,132,0.08));
+      border-color: rgba(108,99,255,0.4);
+    }
+
+    .price-popular {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--accent), var(--highlight));
+      color: var(--white);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.3rem 1rem;
+      border-radius: 100px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .price-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 1rem;
+    }
+
+    .price-amount {
+      font-size: 3rem;
+      font-weight: 700;
+      letter-spacing: -2px;
+      margin-bottom: 0.3rem;
+    }
+
+    .price-amount span {
+      font-size: 1rem;
+      font-weight: 400;
+      color: rgba(255,255,255,0.5);
+    }
+
+    .price-desc {
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .price-features {
+      list-style: none;
+      margin-bottom: 2rem;
+    }
+
+    .price-features li {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 0.7rem;
+    }
+
+    .price-features li::before {
+      content: '✓';
+      color: var(--accent);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .btn-outline {
+      display: block;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: var(--white);
+      padding: 0.8rem;
+      border-radius: 100px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.4);
+    }
+
+    /* ─── CONTACT ─── */
+    #contact {
+      background: var(--bg2);
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      margin-top: 3.5rem;
+      align-items: start;
+    }
+
+    .contact-info h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .contact-info p {
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .contact-methods {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .contact-method {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+    }
+
+    .contact-method-icon {
+      width: 40px; height: 40px;
+      background: rgba(108,99,255,0.15);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .contact-method-text span {
+      display: block;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.4);
+    }
+
+    .contact-method-text strong {
+      font-size: 0.9rem;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    input, textarea, select {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 0.9rem 1.2rem;
+      color: var(--white);
+      font-family: inherit;
+      font-size: 0.9rem;
+      width: 100%;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    textarea { resize: vertical; min-height: 120px; }
+
+    select option { background: #1a1a2e; }
+
+    .form-submit {
+      background: linear-gradient(135deg, var(--accent), #8B7FFF);
+      color: var(--white);
+      border: none;
+      padding: 1rem;
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+
+    .form-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(108,99,255,0.4);
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid var(--glass-border);
+      padding: 3rem 1.5rem 2rem;
+    }
+
+    .footer-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+    }
+
+    .footer-brand .logo {
+      font-size: 1.3rem;
+      display: inline-block;
+      margin-bottom: 1rem;
+    }
+
+    .footer-brand p {
+      color: rgba(255,255,255,0.45);
+      font-size: 0.85rem;
+      max-width: 240px;
+    }
+
+    .footer-col h4 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 1.2rem;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+    }
+
+    .footer-col ul a {
+      color: rgba(255,255,255,0.55);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+
+    .footer-col ul a:hover { color: var(--white); }
+
+    .footer-bottom {
+      max-width: 1100px;
+      margin: 2rem auto 0;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: rgba(255,255,255,0.3);
+      font-size: 0.8rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    /* ─── UTILITY ─── */
+    .text-center { text-align: center; }
+    .mt-2 { margin-top: 0.5rem; }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+      .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+
+    @media (max-width: 640px) {
+      .nav-links { display: none; position: absolute; top: 100%; left: 0; right: 0; background: rgba(10,10,10,0.97); flex-direction: column; padding: 1.5rem; gap: 1rem; border-bottom: 1px solid var(--glass-border); }
+      .nav-links.open { display: flex; }
+      .hamburger { display: flex; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .hero-stats { gap: 1.5rem; }
+    }
+
+    /* ─── WEBGL FALLBACK ─── */
+    .no-webgl-fallback {
+      width: 100%;
+      height: 100%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, #1a1a2e, #0A0A0A);
+      color: rgba(255,255,255,0.5);
+      font-size: 0.85rem;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .no-webgl-fallback span { font-size: 2rem; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="navbar">
+  <div class="logo">Photo3D</div>
+  <button class="hamburger" id="hamburger" aria-label="Меню">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#how">Как это работает</a></li>
+    <li><a href="#examples">Примеры</a></li>
+    <li><a href="#benefits">Преимущества</a></li>
+    <li><a href="#pricing">Цены</a></li>
+    <li><a href="#contact" class="nav-cta">Заказать</a></li>
+  </ul>
+</nav>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <canvas id="hero-canvas-bg"></canvas>
+  <div class="hero-content">
+    <div class="hero-badge">✦ Новая эра персональных подарков</div>
+    <h1>Ваше фото —<br/><span class="gradient-text">живая 3D скульптура</span></h1>
+    <p class="hero-sub">
+      Превращаем фотографии людей в детализированные 3D модели
+      с профессиональной ручной раскраской. Каждая работа уникальна.
+    </p>
+    <div class="hero-buttons">
+      <a href="#contact" class="btn-primary">
+        Заказать модель
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </a>
+      <a href="#examples" class="btn-secondary">Посмотреть примеры</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <div class="stat-num">500+</div>
+        <div class="stat-label">Выполненных заказов</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">4.9★</div>
+        <div class="stat-label">Средняя оценка</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">14 дн</div>
+        <div class="stat-label">Срок изготовления</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section id="how">
+  <div class="container">
+    <p class="section-label reveal">Процесс</p>
+    <h2 class="section-title reveal">Как это работает</h2>
+    <p class="section-sub reveal">Три простых шага от фотографии до готовой скульптуры у вас в руках.</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">01</div>
+        <div class="step-icon">📸</div>
+        <h3>Отправьте фото</h3>
+        <p>Загрузите несколько фотографий с разных ракурсов. Чем лучше качество — тем точнее детали модели.</p>
+      </div>
+      <div class="step reveal" style="transition-delay:0.1s">
+        <div class="step-num">02</div>
+        <div class="step-icon">🧊</div>
+        <h3>Создаём 3D модель</h3>
+        <p>Наши мастера вручную создают высокодетализированную 3D модель с точной передачей черт лица и фигуры.</p>
+      </div>
+      <div class="step reveal" style="transition-delay:0.2s">
+        <div class="step-num">03</div>
+        <div class="step-icon">🎨</div>
+        <h3>Ручная раскраска</h3>
+        <p>Художники вручную расписывают каждую деталь. Реалистичные цвета кожи, волос, одежды и аксессуаров.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 3D EXAMPLES ── -->
+<section id="examples">
+  <div class="container">
+    <p class="section-label reveal">Примеры работ</p>
+    <h2 class="section-title reveal">Покрутите — это реальные 3D</h2>
+    <p class="section-sub reveal">Перетаскивайте мышью или пальцем, чтобы рассмотреть модели со всех сторон.</p>
+    <div class="models-grid">
+
+      <!-- Model 1: Head -->
+      <div class="model-card reveal">
+        <div class="canvas-wrap" id="wrap1">
+          <canvas id="canvas1"></canvas>
+          <div class="no-webgl-fallback" id="fallback1">
+            <span>🧊</span>WebGL не поддерживается
+          </div>
+          <div class="canvas-hint">🖱 Перетащите для вращения</div>
+        </div>
+        <div class="model-info">
+          <div class="model-tag">Голова / бюст</div>
+          <h3>Портретный бюст</h3>
+          <p>Детализированный портрет с проработкой черт лица и прически</p>
+        </div>
+      </div>
+
+      <!-- Model 2: Figure -->
+      <div class="model-card reveal" style="transition-delay:0.1s">
+        <div class="canvas-wrap" id="wrap2">
+          <canvas id="canvas2"></canvas>
+          <div class="no-webgl-fallback" id="fallback2">
+            <span>🧊</span>WebGL не поддерживается
+          </div>
+          <div class="canvas-hint">🖱 Перетащите для вращения</div>
+        </div>
+        <div class="model-info">
+          <div class="model-tag">Полная фигурка</div>
+          <h3>Коллекционная фигурка</h3>
+          <p>Полнофигурная статуэтка в масштабе 1:10 с ручной раскраской</p>
+        </div>
+      </div>
+
+      <!-- Model 3: Abstract sculpture -->
+      <div class="model-card reveal" style="transition-delay:0.2s">
+        <div class="canvas-wrap" id="wrap3">
+          <canvas id="canvas3"></canvas>
+          <div class="no-webgl-fallback" id="fallback3">
+            <span>🧊</span>WebGL не поддерживается
+          </div>
+          <div class="canvas-hint">🖱 Перетащите для вращения</div>
+        </div>
+        <div class="model-info">
+          <div class="model-tag">Арт-скульптура</div>
+          <h3>Абстрактный портрет</h3>
+          <p>Художественная интерпретация образа в стиле современного искусства</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── BENEFITS ── -->
+<section id="benefits">
+  <div class="container">
+    <p class="section-label reveal">Почему мы</p>
+    <h2 class="section-title reveal">Наши преимущества</h2>
+    <div class="benefits-grid">
+      <div class="benefit-card reveal">
+        <div class="benefit-icon">🎯</div>
+        <h3>Точность деталей</h3>
+        <p>Каждая черта лица воссоздаётся вручную с максимальной детализацией по вашим фото.</p>
+      </div>
+      <div class="benefit-card reveal" style="transition-delay:0.1s">
+        <div class="benefit-icon">🎨</div>
+        <h3>Ручная роспись</h3>
+        <p>Мастера-художники вручную расписывают каждую деталь акриловыми красками.</p>
+      </div>
+      <div class="benefit-card reveal" style="transition-delay:0.2s">
+        <div class="benefit-icon">📦</div>
+        <h3>Бережная упаковка</h3>
+        <p>Фигурки упаковываются в фирменные коробки с защитным наполнителем для доставки.</p>
+      </div>
+      <div class="benefit-card reveal" style="transition-delay:0.3s">
+        <div class="benefit-icon">♻️</div>
+        <h3>Эко-материалы</h3>
+        <p>Используем экологичные полимеры и нетоксичные краски. Безопасно для детей.</p>
+      </div>
+      <div class="benefit-card reveal" style="transition-delay:0.4s">
+        <div class="benefit-icon">🔄</div>
+        <h3>Правки включены</h3>
+        <p>До отливки мы показываем 3D рендер для согласования и вносим правки бесплатно.</p>
+      </div>
+      <div class="benefit-card reveal" style="transition-delay:0.5s">
+        <div class="benefit-icon">🛡️</div>
+        <h3>Гарантия качества</h3>
+        <p>Если результат вас не устраивает — переделаем или вернём деньги. Без вопросов.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section id="pricing">
+  <div class="container text-center">
+    <p class="section-label reveal">Тарифы</p>
+    <h2 class="section-title reveal">Простые цены</h2>
+    <p class="section-sub reveal" style="margin:0 auto">Выберите подходящий вариант. Все включает ручную роспись и доставку.</p>
+    <div class="pricing-grid" style="margin-top:4rem">
+
+      <div class="price-card reveal">
+        <p class="price-name">Базовый</p>
+        <div class="price-amount">3 900 <span>₽</span></div>
+        <p class="price-desc">Портретный бюст — голова и плечи</p>
+        <ul class="price-features">
+          <li>Высота 10 см</li>
+          <li>Ручная роспись</li>
+          <li>1 правка перед печатью</li>
+          <li>Срок 14 дней</li>
+          <li>Доставка по России</li>
+        </ul>
+        <a href="#contact" class="btn-outline">Заказать</a>
+      </div>
+
+      <div class="price-card featured reveal" style="transition-delay:0.1s">
+        <div class="price-popular">Популярный</div>
+        <p class="price-name">Стандарт</p>
+        <div class="price-amount" style="background:linear-gradient(135deg,var(--accent),var(--highlight));-webkit-background-clip:text;-webkit-text-fill-color:transparent">7 900 <span style="-webkit-text-fill-color:rgba(255,255,255,0.5);font-size:1rem;font-weight:400">₽</span></div>
+        <p class="price-desc">Полнофигурная статуэтка на базе</p>
+        <ul class="price-features">
+          <li>Высота 16 см</li>
+          <li>Детализированная роспись</li>
+          <li>3 правки перед печатью</li>
+          <li>Срок 14–21 день</li>
+          <li>Приоритетная доставка</li>
+        </ul>
+        <a href="#contact" class="btn-primary" style="display:block;text-align:center">Заказать</a>
+      </div>
+
+      <div class="price-card reveal" style="transition-delay:0.2s">
+        <p class="price-name">Премиум</p>
+        <div class="price-amount">14 900 <span>₽</span></div>
+        <p class="price-desc">Парный портрет или арт-скульптура</p>
+        <ul class="price-features">
+          <li>Высота до 25 см</li>
+          <li>Премиум роспись с лаком</li>
+          <li>Неограниченные правки</li>
+          <li>Срок 21–30 дней</li>
+          <li>Экспресс-доставка</li>
+        </ul>
+        <a href="#contact" class="btn-outline">Заказать</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ── -->
+<section id="contact">
+  <div class="container">
+    <p class="section-label reveal">Контакты</p>
+    <h2 class="section-title reveal">Готовы начать?</h2>
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <h3>Оставьте заявку</h3>
+        <p>Мы свяжемся с вами в течение 2 часов в рабочее время и обсудим все детали вашего заказа.</p>
+        <div class="contact-methods">
+          <div class="contact-method">
+            <div class="contact-method-icon">📧</div>
+            <div class="contact-method-text">
+              <span>Email</span>
+              <strong>hello@photo3d.ru</strong>
+            </div>
+          </div>
+          <div class="contact-method">
+            <div class="contact-method-icon">📱</div>
+            <div class="contact-method-text">
+              <span>Telegram</span>
+              <strong>@photo3d_studio</strong>
+            </div>
+          </div>
+          <div class="contact-method">
+            <div class="contact-method-icon">🕐</div>
+            <div class="contact-method-text">
+              <span>Режим работы</span>
+              <strong>Пн–Пт, 10:00–19:00 МСК</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <form id="order-form" class="reveal" style="transition-delay:0.1s" onsubmit="handleSubmit(event)">
+        <div class="form-row">
+          <input type="text" placeholder="Ваше имя" required />
+          <input type="tel" placeholder="Телефон / Telegram" required />
+        </div>
+        <input type="email" placeholder="Email" required />
+        <select required>
+          <option value="" disabled selected>Выберите тариф</option>
+          <option value="basic">Базовый — 3 900 ₽</option>
+          <option value="standard">Стандарт — 7 900 ₽</option>
+          <option value="premium">Премиум — 14 900 ₽</option>
+        </select>
+        <textarea placeholder="Расскажите о вашем заказе: для кого, какой повод, особые пожелания..."></textarea>
+        <button type="submit" class="form-submit">Отправить заявку →</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">Photo3D</div>
+      <p>Превращаем фотографии в уникальные 3D скульптуры с ручной раскраской. Незабываемые подарки для близких.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Услуги</h4>
+      <ul>
+        <li><a href="#">Портретный бюст</a></li>
+        <li><a href="#">Полная фигурка</a></li>
+        <li><a href="#">Парный портрет</a></li>
+        <li><a href="#">Арт-скульптура</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Компания</h4>
+      <ul>
+        <li><a href="#">О нас</a></li>
+        <li><a href="#">Портфолио</a></li>
+        <li><a href="#">Отзывы</a></li>
+        <li><a href="#">Блог</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Поддержка</h4>
+      <ul>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Доставка</a></li>
+        <li><a href="#">Возврат</a></li>
+        <li><a href="#contact">Контакты</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Photo3D. Все права защищены.</span>
+    <span>Сделано с ❤️ в России</span>
+  </div>
+</footer>
+
+<!-- ── SCRIPTS ── -->
+<script>
+  // ── Hamburger ──
+  const ham = document.getElementById('hamburger');
+  const nav = document.getElementById('nav-links');
+  ham.addEventListener('click', () => nav.classList.toggle('open'));
+
+  // ── Reveal on scroll ──
+  const reveals = document.querySelectorAll('.reveal');
+  const revealObs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => revealObs.observe(el));
+
+  // ── Form ──
+  function handleSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.form-submit');
+    btn.textContent = '✓ Заявка отправлена!';
+    btn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+    setTimeout(() => { btn.textContent = 'Отправить заявку →'; btn.style.background = ''; }, 3000);
+  }
+
+  // ── Hero background canvas ──
+  (function() {
+    const canvas = document.getElementById('hero-canvas-bg');
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+    const isMobile = window.innerWidth < 640;
+    const COUNT = isMobile ? 40 : 80;
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+
+    function Particle() {
+      this.x = Math.random() * w;
+      this.y = Math.random() * h;
+      this.r = Math.random() * 2 + 0.5;
+      this.vx = (Math.random() - 0.5) * 0.4;
+      this.vy = (Math.random() - 0.5) * 0.4;
+      this.alpha = Math.random() * 0.5 + 0.1;
+    }
+
+    function init() {
+      particles = [];
+      for (let i = 0; i < COUNT; i++) particles.push(new Particle());
+    }
+
+    let animId;
+    function draw() {
+      ctx.clearRect(0, 0, w, h);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = w; if (p.x > w) p.x = 0;
+        if (p.y < 0) p.y = h; if (p.y > h) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(108,99,255,${p.alpha})`;
+        ctx.fill();
+      });
+      // Lines between close particles
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(108,99,255,${0.08 * (1 - dist/120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      animId = requestAnimationFrame(draw);
+    }
+
+    resize();
+    init();
+    draw();
+    window.addEventListener('resize', () => { resize(); init(); });
+  })();
+
+  // ── Three.js 3D Models ──
+  let threeLoaded = false;
+  const canvasIds = ['canvas1', 'canvas2', 'canvas3'];
+  const scenes = {};
+  let animFrames = {};
+  const isMobileDevice = /Mobi|Android/i.test(navigator.userAgent);
+
+  function checkWebGL() {
+    try {
+      const c = document.createElement('canvas');
+      return !!(c.getContext('webgl') || c.getContext('experimental-webgl'));
+    } catch(e) { return false; }
+  }
+
+  function loadThreeJS(callback) {
+    if (threeLoaded) { callback(); return; }
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js';
+    script.onload = () => {
+      // Load OrbitControls
+      const oc = document.createElement('script');
+      oc.src = 'https://cdn.jsdelivr.net/npm/three@0.134.0/examples/js/controls/OrbitControls.js';
+      oc.onload = () => { threeLoaded = true; callback(); };
+      oc.onerror = () => { threeLoaded = true; callback(); }; // proceed without controls
+      document.head.appendChild(oc);
+    };
+    script.onerror = () => console.warn('Three.js failed to load');
+    document.head.appendChild(script);
+  }
+
+  function buildScene(id, buildModelFn) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: !isMobileDevice, alpha: true });
+    renderer.setPixelRatio(isMobileDevice ? 1 : Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(canvas.parentElement.clientWidth, canvas.parentElement.clientHeight);
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, canvas.parentElement.clientWidth / canvas.parentElement.clientHeight, 0.1, 100);
+    camera.position.set(0, 0, 4);
+
+    // Lights
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+    const dir = new THREE.DirectionalLight(0x6C63FF, 1.2);
+    dir.position.set(3, 3, 3);
+    scene.add(dir);
+    const point1 = new THREE.PointLight(0xFF6584, 0.8, 10);
+    point1.position.set(-2, 2, 2);
+    scene.add(point1);
+    const point2 = new THREE.PointLight(0x6C63FF, 0.5, 10);
+    point2.position.set(2, -2, -2);
+    scene.add(point2);
+
+    const group = buildModelFn(scene, isMobileDevice);
+
+    // Controls
+    let controls = null;
+    if (typeof THREE.OrbitControls !== 'undefined') {
+      controls = new THREE.OrbitControls(camera, canvas);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.enableZoom = false;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 1.5;
+    }
+
+    scenes[id] = { renderer, scene, camera, group, controls };
+
+    let lastTime = 0;
+    const FPS = isMobileDevice ? 30 : 60;
+    const interval = 1000 / FPS;
+    let running = true;
+
+    function animate(time) {
+      if (!running) return;
+      animFrames[id] = requestAnimationFrame(animate);
+      if (time - lastTime < interval) return;
+      lastTime = time;
+      if (controls) controls.update();
+      if (group) group.rotation.y += 0.003;
+      renderer.render(scene, camera);
+    }
+
+    animFrames[id] = requestAnimationFrame(animate);
+
+    // Pause when not visible
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        running = e.isIntersecting;
+        if (running) animFrames[id] = requestAnimationFrame(animate);
+      });
+    }, { threshold: 0.1 });
+    obs.observe(canvas.parentElement);
+
+    // Resize
+    window.addEventListener('resize', () => {
+      const w = canvas.parentElement.clientWidth;
+      const h = canvas.parentElement.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    });
+  }
+
+  // ── Model 1: Head / Bust ──
+  function buildHead(scene, mobile) {
+    const group = new THREE.Group();
+    const segments = mobile ? 16 : 32;
+
+    // Neck
+    const neck = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28, 0.32, 0.5, segments),
+      new THREE.MeshPhongMaterial({ color: 0x6C63FF, wireframe: false, shininess: 80, specular: 0xFF6584 })
+    );
+    neck.position.y = -0.85;
+    group.add(neck);
+
+    // Shoulders
+    const shoulder = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.8, 0.7, 0.3, segments),
+      new THREE.MeshPhongMaterial({ color: 0x4a44cc, shininess: 60 })
+    );
+    shoulder.position.y = -1.15;
+    group.add(shoulder);
+
+    // Head
+    const head = new THREE.Mesh(
+      new THREE.SphereGeometry(0.65, segments, segments),
+      new THREE.MeshPhongMaterial({ color: 0x8B7FFF, shininess: 100, specular: 0xFF6584 })
+    );
+    head.position.y = 0;
+    group.add(head);
+
+    // Eyes
+    [-0.22, 0.22].forEach(x => {
+      const eye = new THREE.Mesh(
+        new THREE.SphereGeometry(0.08, 12, 12),
+        new THREE.MeshPhongMaterial({ color: 0x0A0A0A, shininess: 200 })
+      );
+      eye.position.set(x, 0.1, 0.6);
+      group.add(eye);
+      // Iris
+      const iris = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 10, 10),
+        new THREE.MeshPhongMaterial({ color: 0xFF6584, emissive: 0xFF6584, emissiveIntensity: 0.3 })
+      );
+      iris.position.set(x, 0.1, 0.66);
+      group.add(iris);
+    });
+
+    // Nose
+    const nose = new THREE.Mesh(
+      new THREE.ConeGeometry(0.06, 0.15, 8),
+      new THREE.MeshPhongMaterial({ color: 0x7a6eee })
+    );
+    nose.rotation.x = Math.PI;
+    nose.position.set(0, -0.05, 0.62);
+    group.add(nose);
+
+    // Mouth
+    const mouth = new THREE.Mesh(
+      new THREE.TorusGeometry(0.1, 0.025, 8, 16, Math.PI),
+      new THREE.MeshPhongMaterial({ color: 0xFF6584 })
+    );
+    mouth.rotation.x = Math.PI * 0.1;
+    mouth.position.set(0, -0.22, 0.6);
+    group.add(mouth);
+
+    // Hair wisps
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2;
+      const wisp = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.02, 0.01, 0.3, 6),
+        new THREE.MeshPhongMaterial({ color: 0xFF6584 })
+      );
+      wisp.position.set(Math.cos(angle) * 0.5, 0.6 + Math.random() * 0.1, Math.sin(angle) * 0.3);
+      wisp.rotation.z = Math.cos(angle) * 0.3;
+      group.add(wisp);
+    }
+
+    // Wireframe overlay
+    const wfHead = new THREE.Mesh(
+      new THREE.SphereGeometry(0.66, mobile ? 10 : 16, mobile ? 10 : 16),
+      new THREE.MeshBasicMaterial({ color: 0xFF6584, wireframe: true, transparent: true, opacity: 0.12 })
+    );
+    group.add(wfHead);
+
+    scene.add(group);
+    return group;
+  }
+
+  // ── Model 2: Full Figure ──
+  function buildFigure(scene, mobile) {
+    const group = new THREE.Group();
+    const seg = mobile ? 12 : 20;
+    const mat = (color) => new THREE.MeshPhongMaterial({ color, shininess: 80, specular: 0x6C63FF });
+
+    // Head
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.22, seg, seg), mat(0x8B7FFF));
+    head.position.y = 1.55;
+    group.add(head);
+
+    // Torso
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.18, 0.65, seg), mat(0x6C63FF));
+    torso.position.y = 1.05;
+    group.add(torso);
+
+    // Hips
+    const hips = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.18, 0.35, seg), mat(0x4a44cc));
+    hips.position.y = 0.62;
+    group.add(hips);
+
+    // Arms
+    [[-0.35, 1.0], [0.35, 1.0]].forEach(([x, y]) => {
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.06, 0.45, seg), mat(0x7a6eee));
+      upper.rotation.z = x > 0 ? -0.3 : 0.3;
+      upper.position.set(x, y, 0);
+      group.add(upper);
+      const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.045, 0.4, seg), mat(0x8B7FFF));
+      lower.rotation.z = x > 0 ? -0.5 : 0.5;
+      lower.position.set(x * 1.08, y - 0.42, 0);
+      group.add(lower);
+      // Hand
+      const hand = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), mat(0xFF6584));
+      hand.position.set(x * 1.15, y - 0.65, 0);
+      group.add(hand);
+    });
+
+    // Legs
+    [[-0.1, 0.37], [0.1, 0.37]].forEach(([x, y]) => {
+      const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.08, 0.55, seg), mat(0x5a54dd));
+      upper.position.set(x, y, 0);
+      group.add(upper);
+      const lower = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.06, 0.5, seg), mat(0x6C63FF));
+      lower.position.set(x, y - 0.52, 0);
+      group.add(lower);
+      // Foot
+      const foot = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.07, 0.22), mat(0x4a44cc));
+      foot.position.set(x, y - 0.82, 0.05);
+      group.add(foot);
+    });
+
+    // Base
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.35, 0.38, 0.1, seg),
+      new THREE.MeshPhongMaterial({ color: 0x1a1a2e, shininess: 120 })
+    );
+    base.position.y = -1.2;
+    group.add(base);
+
+    group.position.y = -0.3;
+    scene.add(group);
+    return group;
+  }
+
+  // ── Model 3: Abstract Sculpture ──
+  function buildAbstract(scene, mobile) {
+    const group = new THREE.Group();
+    const seg = mobile ? 12 : 24;
+
+    // Central twisted torus
+    const torus1 = new THREE.Mesh(
+      new THREE.TorusGeometry(0.7, 0.18, seg, seg * 2),
+      new THREE.MeshPhongMaterial({ color: 0x6C63FF, shininess: 120, specular: 0xFFFFFF })
+    );
+    torus1.rotation.x = 0.5;
+    group.add(torus1);
+
+    const torus2 = new THREE.Mesh(
+      new THREE.TorusGeometry(0.5, 0.1, seg, seg * 2),
+      new THREE.MeshPhongMaterial({ color: 0xFF6584, shininess: 100, specular: 0x6C63FF, transparent: true, opacity: 0.85 })
+    );
+    torus2.rotation.y = 1.0;
+    torus2.rotation.z = 0.8;
+    group.add(torus2);
+
+    // Sphere cluster
+    const positions = [
+      [0, 0, 0], [0.6, 0.4, 0], [-0.5, 0.5, 0.3],
+      [0.3, -0.6, 0.4], [-0.4, -0.3, -0.5]
+    ];
+    positions.forEach(([x, y, z], i) => {
+      const s = new THREE.Mesh(
+        new THREE.SphereGeometry(0.12 + i * 0.03, seg, seg),
+        new THREE.MeshPhongMaterial({
+          color: i % 2 === 0 ? 0x8B7FFF : 0xFF6584,
+          transparent: true, opacity: 0.7, shininess: 150
+        })
+      );
+      s.position.set(x, y, z);
+      group.add(s);
+    });
+
+    // Wireframe icosahedron
+    const ico = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.0, mobile ? 1 : 2),
+      new THREE.MeshBasicMaterial({ color: 0x6C63FF, wireframe: true, transparent: true, opacity: 0.15 })
+    );
+    group.add(ico);
+
+    // Floating octahedron
+    const oct = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.25),
+      new THREE.MeshPhongMaterial({ color: 0xFF6584, shininess: 200, emissive: 0xFF6584, emissiveIntensity: 0.2 })
+    );
+    oct.position.set(0.9, 0.6, 0);
+    group.add(oct);
+
+    scene.add(group);
+    return group;
+  }
+
+  // ── Init 3D on section visible ──
+  function initModels() {
+    if (!checkWebGL()) {
+      ['1','2','3'].forEach(i => {
+        document.getElementById('canvas'+i).style.display = 'none';
+        document.getElementById('fallback'+i).style.display = 'flex';
+      });
+      return;
+    }
+    loadThreeJS(() => {
+      buildScene('canvas1', buildHead);
+      buildScene('canvas2', buildFigure);
+      buildScene('canvas3', buildAbstract);
+    });
+  }
+
+  // Lazy load Three.js only when examples section is near
+  const examplesSection = document.getElementById('examples');
+  const lazyObs = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      initModels();
+      lazyObs.disconnect();
+    }
+  }, { rootMargin: '200px' });
+  lazyObs.observe(examplesSection);
+</script>
+
+</body>
+</html>
